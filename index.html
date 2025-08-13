@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<title>WebRTC IP Test</title>
+<style>
+ body { font-family: sans-serif; margin: 2rem; }
+ textarea { width: 100%; height: 16rem; }
+ button   { margin-top: 1rem; padding: .6rem 1.2rem; }
+</style>
+</head>
+<body>
+<h1>WebRTC IP Test</h1>
+<p>「Start」を押すとブラウザが生成した ICE 候補を下に表示します。<br>
+ローカル IP や VPN 外のグローバル IP が出力される場合は <strong>WebRTC IP リーク</strong> が起きています。</p>
+
+<button id="startButton">Start</button>
+<textarea id="log" readonly placeholder="ICE 候補がここに表示されます"></textarea>
+
+<script>
+(() => {
+  const startBtn = document.getElementById('startButton');
+  const logArea  = document.getElementById('log');
+
+  const log = msg => {
+    logArea.value += msg + '\n';
+    logArea.scrollTop = logArea.scrollHeight;
+  };
+
+  startBtn.addEventListener('click', () => {
+    // 既存ログをクリア
+    logArea.value = '';
+
+    // 公開 STUN (Google) — 必要に応じて自前 STUN に変更してください
+    const pc = new RTCPeerConnection({
+      iceServers: [{ urls: 'stun:stun.l.google.com:19302' }]
+    });
+
+    // DataChannel を作らないと Chrome 系で候補生成が走らない場合がある
+    pc.createDataChannel('dummy');
+
+    pc.onicecandidate = e => {
+      if (e.candidate) {
+        log(e.candidate.candidate);
+      } else {
+        log('=== ICE Gathering Complete ===');
+        pc.close();
+      }
+    };
+
+    // Offer を作成 → setLocalDescription() で ICE 収集が開始
+    pc.createOffer()
+      .then(o => pc.setLocalDescription(o))
+      .catch(err => log('[Error] ' + err));
+  });
+})();
+</script>
+</body>
+</html>
