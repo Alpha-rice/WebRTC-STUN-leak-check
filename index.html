@@ -2,10 +2,43 @@
 <html lang="ja">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>WebRTC IP Leak Tester</title>
+
+  <!-- ビューポート -->
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <!-- ページ基本情報 -->
+  <title>WebRTC IP Leak Tester | ICE 候補でリーク確認</title>
+  <meta name="description" content="WebRTC の ICE 候補（host/srflx/relay, mDNS 含む）をブラウザだけで可視化し、VPN/プロキシ環境での IP リーク有無を手早く確認できます。">
+
+  <!-- Open Graph (Discord/Facebook等) -->
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="WebRTC IP Leak Tester">
+  <meta property="og:description" content="WebRTC の ICE 候補を一覧表示。mDNS・srflx・relay を色分け、フィルタ・JSONコピー対応。VPNでのリーク確認に。">
+  <!-- 公開URL（あなたの本番URLに置き換え） -->
+  <meta property="og:url" content="https://example.com/webrtc-ip-tester/">
+  <!-- 絶対URLのOG画像（1200x630推奨。あなたの画像URLに置き換え） -->
+  <meta property="og:image" content="https://alpha-rice.github.io/WebRTC-STUN-leak-check/og-image.jpg">
+  <meta property="og:site_name" content="WebRTC Tools">
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image">
+  <!-- 任意：ブランドの@ユーザー名 -->
+  <meta name="twitter:site" content="@alpha_rice_vrc">
+  <meta name="twitter:title" content="WebRTC IP Leak Tester">
+  <meta name="twitter:description" content="ICE 候補を可視化して IP リークを確認。mDNS 対応・フィルタ・JSONコピー・モバイル最適化。">
+  <meta name="twitter:image" content="https://alpha-rice.github.io/WebRTC-STUN-leak-check/og-image.jpg">
+  <!-- 共有時の言語/地域（任意） -->
+  <meta property="og:locale" content="ja_JP">
+
+  <!-- OGPプレビュー向けの基本スタイル/スクリプト -->
   <link rel="stylesheet" href="styles.css">
 </head>
+<body>
+<header class="container">
+  <h1>WebRTC IP Leak Tester</h1>
+  <p class="lead">ブラウザが生成する ICE 候補（IP・ポート）を一覧表示し、VPN/プロキシ環境での IP リークを確認できます。</p>
+</header>
+
 <body>
 <header class="container">
   <h1>WebRTC IP Leak Tester</h1>
