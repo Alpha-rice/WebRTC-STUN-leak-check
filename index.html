@@ -2,107 +2,65 @@
 <html lang="ja">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>WebRTC IP Leak Tester (Improved)</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>WebRTC IP Leak Tester</title>
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <header class="container">
-    <h1>WebRTC IP Leak Tester</h1>
-    <p class="lead">
-      ブラウザが生成する ICE 候補（IP・ポート）を表示し、VPN/プロキシ環境での
-      IP リークを確認できます。mDNS によりローカル IP が匿名化されることがあります。
-    </p>
-  </header>
+<header class="container">
+  <h1>WebRTC IP Leak Tester</h1>
+  <p class="lead">ブラウザが生成する ICE 候補（IP・ポート）を一覧表示し、VPN/プロキシ環境での IP リークを確認できます。</p>
+</header>
 
-  <main class="container" role="main">
-    <section class="controls" aria-labelledby="controlTitle">
-      <h2 id="controlTitle">テスト設定</h2>
-      <div class="control-grid">
-        <label class="control">
-          <span>STUN サーバ（urls）</span>
-          <input id="stunUrl" type="text" inputmode="url"
-                 value="stun:stun.l.google.com:19302"
-                 placeholder="例: stun:stun.l.google.com:19302"
-                 aria-describedby="stunHelp">
-          <small id="stunHelp">任意の STUN を指定可能（TURN は非対応）</small>
-        </label>
+<main class="container">
+  <!-- 設定 ------------------------------------------------------- -->
+  <section class="controls">
+    <h2>設定</h2>
+    <label>
+      STUN サーバ&nbsp;
+      <input id="stunUrl" type="text" value="stun:stun.l.google.com:19302" size="30">
+    </label>
 
-        <div class="control">
-          <span>表示フィルタ</span>
-          <div class="filters" role="group" aria-label="候補タイプのフィルタ">
-            <label><input type="checkbox" id="filterHost" checked> host</label>
-            <label><input type="checkbox" id="filterSrflx" checked> srflx</label>
-            <label><input type="checkbox" id="filterRelay" checked> relay</label>
-          </div>
-        </div>
+    <div class="filter-group" role="group" aria-label="候補フィルタ">
+      <label><input type="checkbox" data-filter="host"  checked>host</label>
+      <label><input type="checkbox" data-filter="mdns"  checked>mDNS</label>
+      <label><input type="checkbox" data-filter="srflx" checked>srflx</label>
+      <label><input type="checkbox" data-filter="relay" checked>relay</label>
+    </div>
 
-        <div class="control buttons">
-          <button id="startButton" class="primary">テスト開始</button>
-          <button id="stopButton" class="secondary" disabled>停止</button>
-          <button id="copyButton" class="ghost" disabled>結果をコピー</button>
-        </div>
-      </div>
+    <div class="btn-group">
+      <button id="startBtn" class="primary">テスト開始</button>
+      <button id="stopBtn"  class="secondary" disabled>停止</button>
+      <button id="copyBtn"  class="ghost"     disabled>JSON コピー</button>
+    </div>
 
-      <details class="note">
-        <summary>ブラウザの注意事項</summary>
-        <ul>
-          <li>ローカルIPがmDNSホスト名で匿名化される場合があります（host候補がmdns形式になる）。[1][2][5]</li>
-          <li>企業管理環境ではポリシーで露出可否が制御される場合があります（例: WebRtcLocalIpsAllowedUrls）。[2][5]</li>
-          <li>TURN 経由のみの場合は relay 候補のみになります（srflxが出ない）。[7][13]</li>
-        </ul>
-      </details>
-    </section>
+    <div id="progress" class="progress" hidden><span></span></div>
+    <p id="status" class="status">待機中</p>
+  </section>
 
-    <section class="results" aria-labelledby="resultTitle">
-      <h2 id="resultTitle">取得結果</h2>
+  <!-- 結果 ------------------------------------------------------- -->
+  <section class="results">
+    <h2>結果</h2>
 
-      <div id="status" role="status" aria-live="polite" class="status">待機中</div>
+    <div class="table-wrap" tabindex="0">
+      <table id="resultTable">
+        <thead>
+          <tr><th>種別</th><th>IP / mDNS</th><th>ポート</th><th>Proto</th><th>Prio</th><th>関連アドレス</th></tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
 
-      <div class="legend">
-        <span class="pill host">host</span>
-        <span class="pill srflx">srflx</span>
-        <span class="pill relay">relay</span>
-        <span class="pill mdns">mDNS</span>
-      </div>
+    <ul id="cardList" class="card-list" aria-label="モバイルビュー"></ul>
 
-      <div class="table-wrap" tabindex="0" aria-label="ICE 候補一覧テーブル">
-        <table id="resultTable">
-          <thead>
-            <tr>
-              <th>種別</th>
-              <th>IP / mDNS</th>
-              <th>ポート</th>
-              <th>プロトコル</th>
-              <th>優先度</th>
-              <th>関連アドレス</th>
-            </tr>
-          </thead>
-          <tbody></tbody>
-        </table>
-      </div>
+    <p id="doneMsg" class="done" hidden>ICE 収集が完了しました。</p>
+  </section>
+</main>
 
-      <ul id="cardList" class="card-list" aria-label="モバイル向け候補カード一覧"></ul>
+<footer class="container">
+  <small>仕様参考: RFC 8445 / WebRTC 1.0,  mDNS によるローカル IP 匿名化 [1][2]</small>
+</footer>
 
-      <p id="completeMessage" class="complete" hidden>ICE 収集が完了しました。</p>
-    </section>
-
-    <section class="help" aria-labelledby="helpTitle">
-      <h2 id="helpTitle">解釈のヒント</h2>
-      <ul>
-        <li>host: 端末のローカル候補（mDNSで匿名化されることがあります）。[1][2]</li>
-        <li>srflx: STUN から見えるパブリックIP（VPN外のIPが見えた場合はリークの可能性）。[13][19]</li>
-        <li>relay: TURN 経由のリレー候補（安全だが遅延が増える傾向）。[13][19]</li>
-      </ul>
-    </section>
-  </main>
-
-  <footer class="container">
-    <small>
-      仕様参考: mDNSによるローカルIP匿名化のお知らせ（Chrome）[2]／mDNSフラグ関連情報[1][5]／ICE候補の形式（JSEP/RFC）[13][19]／候補例の形式[7]
-    </small>
-  </footer>
-
-  <script src="script.js" defer></script>
+<script src="script.js" defer></script>
 </body>
 </html>
